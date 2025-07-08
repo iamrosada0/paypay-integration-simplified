@@ -24,7 +24,14 @@ XQIDAQAB
   saleProductCode: "",
 };
 
-// Helper: Validate PEM key
+/**
+ * Validates a PEM-formatted key (either public or private).
+ *
+ * @param {string} key - The PEM key to validate.
+ * @param {string} [type="PUBLIC KEY"] - Type of key: "PUBLIC KEY" or "PRIVATE KEY".
+ * @returns {boolean} Returns true if valid, throws an error otherwise.
+ * @throws {Error} If the key is invalid or cannot be parsed.
+ */
 function validatePemKey(key, type = "PUBLIC KEY") {
   try {
     if (
@@ -45,12 +52,20 @@ function validatePemKey(key, type = "PUBLIC KEY") {
   }
 }
 
-// Helper: Generate unique request number
+/**
+ * Generates a unique request number (request_no) as a 32-character hex string.
+ *
+ * @returns {string} A unique request identifier.
+ */
 function generateRequestNo() {
   return crypto.randomBytes(16).toString("hex");
 }
 
-// Helper: Generate timestamp in GMT+1
+/**
+ * Returns the current timestamp in GMT+1 formatted as 'YYYY-MM-DD HH:mm:ss'.
+ *
+ * @returns {string} A timestamp string in GMT+1.
+ */
 function generateTimestamp() {
   const now = new Date();
   const offset = 1 * 60 * 60 * 1000; // GMT+1 offset in milliseconds
@@ -58,7 +73,13 @@ function generateTimestamp() {
   return gmtPlus1.toISOString().replace("T", " ").substring(0, 19);
 }
 
-// Helper: Encrypt biz_content with private key
+/**
+ * Encrypts the given bizContent using a private RSA key (PKCS1 padding).
+ *
+ * @param {string} bizContent - The JSON string to encrypt.
+ * @param {string} privateKey - The RSA private key in PEM format.
+ * @returns {string} The encrypted content encoded in base64.
+ */
 function encryptBizContentWithPrivateKey(bizContent, privateKey) {
   const buffer = Buffer.from(bizContent, "utf8");
   const chunkSize = 117;
@@ -82,7 +103,14 @@ function encryptBizContentWithPrivateKey(bizContent, privateKey) {
   return encoded;
 }
 
-// Helper: Generate SHA1withRSA signature
+/**
+ * Creates a SHA1withRSA signature from the given parameters using the private key.
+ *
+ * @param {Object} params - The request parameters to sign.
+ * @param {string} privateKey - The RSA private key in PEM format.
+ * @returns {string} A base64-encoded signature string.
+ * @throws {Error} If signature creation fails.
+ */
 function generateSignature(params, privateKey) {
   try {
     validatePemKey(privateKey, "PRIVATE KEY");
@@ -108,7 +136,19 @@ function generateSignature(params, privateKey) {
   }
 }
 
-// Main function to create MULTICAIXA Express payment
+/**
+ * Creates a payment request for MULTICAIXA Express.
+ *
+ * @async
+ * @function
+ * @param {Object} orderDetails - The order details for the payment.
+ * @param {string} orderDetails.outTradeNo - Unique external trade number.
+ * @param {number} orderDetails.amount - Total amount to be paid.
+ * @param {string} orderDetails.phoneNum - Phone number associated with the MULTICAIXA account.
+ * @param {string} [orderDetails.subject="Purchase"] - Optional description of the transaction.
+ * @returns {Promise<Object>} The API response from the PayPay server.
+ * @throws {Error} If the request fails or the API returns an error.
+ */
 async function createMulticaixaPayment(orderDetails) {
   const { outTradeNo, amount, phoneNum, subject = "Purchase" } = orderDetails;
 
@@ -190,7 +230,19 @@ async function createMulticaixaPayment(orderDetails) {
   }
 }
 
-// Function to create PayPay App payment
+/**
+ * Creates a payment request for the PayPay App (non-Multicaixa).
+ *
+ * @async
+ * @function
+ * @param {Object} orderDetails - The order details for the payment.
+ * @param {string} orderDetails.outTradeNo - Unique external trade number.
+ * @param {number} orderDetails.amount - Total amount to be paid.
+ * @param {string} [orderDetails.subject="Purchase"] - Optional description of the transaction.
+ * @param {string} clientIp - The IP address of the client initiating the transaction.
+ * @returns {Promise<Object>} The API response from the PayPay server.
+ * @throws {Error} If the request fails or the API returns an error.
+ */
 async function createPayPayAppPayment(orderDetails, clientIp) {
   const { outTradeNo, amount, subject = "Purchase" } = orderDetails;
 
@@ -272,7 +324,15 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Enable CORS for frontend requests
 
-// POST /api/create route for MULTICAIXA Express payments
+/**
+ * Route: POST /api/create
+ * Handles MULTICAIXA Express payment creation from the client.
+ *
+ * @route POST /api/create
+ * @param {Request} req - Express request object (expects JSON body with total_amount, paymentMethod, and phone_num).
+ * @param {Response} res - Express response object.
+ * @returns {Object} JSON response with payment details or error message.
+ */
 app.post("/api/create", async (req, res) => {
   try {
     const { total_amount, paymentMethod, phone_num } = req.body;
@@ -335,7 +395,14 @@ app.post("/api/create", async (req, res) => {
   }
 });
 
-// Notification endpoint
+/**
+ * Route: POST /paypay/notification
+ * Receives and verifies notifications from PayPay.
+ *
+ * @route POST /paypay/notification
+ * @param {Request} req - Express request containing notification payload.
+ * @param {Response} res - Express response confirming verification status.
+ */
 app.post("/paypay/notification", (req, res) => {
   const notification = req.body;
   console.log("Received notification:", notification);
@@ -368,7 +435,15 @@ app.post("/paypay/notification", (req, res) => {
   }
 });
 
-// POST /api/create-paypay-app route for PayPay App payments
+/**
+ * Route: POST /api/create-paypay-app
+ * Handles PayPay App payment creation from the client.
+ *
+ * @route POST /api/create-paypay-app
+ * @param {Request} req - Express request object (expects total_amount and optional subject).
+ * @param {Response} res - Express response object.
+ * @returns {Object} JSON response with payment link or error message.
+ */
 app.post("/api/create-paypay-app", async (req, res) => {
   try {
     const { total_amount, subject } = req.body;
@@ -423,6 +498,12 @@ app.post("/api/create-paypay-app", async (req, res) => {
   }
 });
 
-// Start server
+/**
+ * Starts the Express server on the defined port.
+ *
+ * @constant
+ * @type {number}
+ */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
