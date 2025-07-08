@@ -52,13 +52,13 @@ The `config` object holds essential settings for the PAYPAY API. Each variable i
   - **Example**: A PEM-formatted private key (shortened for brevity).
 
 - **`paypayPublicKey`**:
-  - **Description**: PAYPAY’s 1024-bit RSA public key for verifying response and notification signatures.
+  - **Description**: PAYPAY RSA public key for verifying response and notification signatures.
   - **How to Get**: Download from the PAYPAY back office after account approval.
   - **Example**: A PEM-formatted public key (shortened for brevity).
 
 - **`apiUrl`**:
   - **Description**: The PAYPAY API gateway endpoint.
-  - **Value**: Confirm the production URL with PAYPAY support. The provided code uses a test URL (`https://testgateway.zsaipay.com:18202/gateway/recv.do`).
+  - **Value**: Confirm the production URL with PAYPAY support. The provided code uses a test URL (``).
   - **Note**: No sandbox exists; all transactions involve real funds.
 
 - **`saleProductCode`**:
@@ -89,7 +89,7 @@ MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALPlEvZAyTz/d6nE
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArL1akdPqJVYIGI4vGNiN
 ... // PAYPAY’s public key
 -----END PUBLIC KEY-----`,
-  apiUrl: "https://testgateway.zsaipay.com:18202/gateway/recv.do", // Confirm with PAYPAY support
+  apiUrl: "", // Confirm with PAYPAY support
   saleProductCode: "050200030", // Request from PAYPAY support
 };
 ```
