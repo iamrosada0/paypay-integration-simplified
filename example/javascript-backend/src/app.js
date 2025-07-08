@@ -396,46 +396,6 @@ app.post("/api/create", async (req, res) => {
 });
 
 /**
- * Route: POST /paypay/notification
- * Receives and verifies notifications from PayPay.
- *
- * @route POST /paypay/notification
- * @param {Request} req - Express request containing notification payload.
- * @param {Response} res - Express response confirming verification status.
- */
-app.post("/paypay/notification", (req, res) => {
-  const notification = req.body;
-  console.log("Received notification:", notification);
-
-  try {
-    validatePemKey(config.paypayPublicKey, "PUBLIC KEY");
-    const params = { ...notification };
-    delete params.sign;
-    delete params.sign_type;
-    const sortedKeys = Object.keys(params).sort();
-    const stringToSign = sortedKeys
-      .map((key) => `${key}=${params[key]}`)
-      .join("&");
-    const publicKey = forge.pki.publicKeyFromPem(config.paypayPublicKey);
-    const md = forge.md.sha1.create();
-    md.update(stringToSign, "utf8");
-    const signature = forge.util.decode64(notification.sign);
-    const isValid = publicKey.verify(md.digest().bytes(), signature);
-
-    if (isValid) {
-      console.log("Notification signature verified");
-      res.send("success");
-    } else {
-      console.error("Invalid notification signature");
-      res.status(400).send("failure");
-    }
-  } catch (error) {
-    console.error("Notification processing error:", error.message);
-    res.status(500).send("failure");
-  }
-});
-
-/**
  * Route: POST /api/create-paypay-app
  * Handles PayPay App payment creation from the client.
  *
