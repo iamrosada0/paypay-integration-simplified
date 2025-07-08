@@ -127,7 +127,7 @@ The `config` object holds essential settings for the PAYPAY API. Each variable i
 
 - **`apiUrl`**:
   - **Description**: The PAYPAY API gateway endpoint.
-  - **Value**: Confirm with PAYPAY support. The provided code uses a test URL (`https://testgateway.zsaipay.com:18202/gateway/recv.do`).
+  - **Value**: Confirm with PAYPAY support. The provided code uses a test URL (`https://xxxxx/gateway/recv.do`).
   - **Note**: No sandbox exists; all transactions involve real funds.
 
 - **`saleProductCode`**:
@@ -161,7 +161,7 @@ MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALPlEvZAyTz/d6nE
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArL1akdPqJVYIGI4vGNiN
 ... // PAYPAY’s public key
 -----END PUBLIC KEY-----`,
-  apiUrl: "https://testgateway.zsaipay.com:18202/gateway/recv.do", // Confirm with PAYPAY support
+  apiUrl: "https://xxxxx/gateway/recv.do", // Confirm with PAYPAY support
   saleProductCode: "050200030", // Request from PAYPAY support
 };
 ```
