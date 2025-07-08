@@ -40,25 +40,94 @@ The `config` object holds essential settings for the PAYPAY API. Each variable i
 - **`partnerId`**:
   - **Description**: Your unique merchant ID (also called "member number") assigned by PAYPAY.
   - **How to Get**: Log in to the PAYPAY back office ([https://portal.paypayafrica.com](https://portal.paypayafrica.com)) to find your `partnerId`. Requires a registered and approved enterprise account.
-  - **Example**: `"200001860724"`
+  - **Example**: `"200001860721"`
 
 - **`privateKey`**:
-  - **Description**: A 1024-bit RSA private key for encrypting `biz_content` and signing requests.
-  - **How to Generate**: Use OpenSSL to create a 1024-bit RSA key pair:
-    ```bash
-    openssl genrsa -out private_key.pem 1024
-    ```
-    Keep the private key secure and never share it. Upload the corresponding public key to the PAYPAY back office.
-  - **Example**: A PEM-formatted private key (shortened for brevity).
+  - **Description**: A 1024-bit RSA private key used for encrypting `biz_content` and signing requests with SHA1withRSA. This key is part of an RSA key pair, and its corresponding public key must be uploaded to the PAYPAY back office for verification.
+  - **Why It’s Important**: The private key ensures secure encryption of sensitive payment data and authenticates your requests. The public key, derived from this private key, allows PAYPAY to verify your signatures.
+  - **How to Generate**:
+    - Use **OpenSSL**, a widely available tool, to generate a 1024-bit RSA key pair. The private key is kept secure on your system, while the public key is extracted and uploaded to the PAYPAY back office.
+    - **Step 1: Generate the Private Key**:
+      - The following commands create a 1024-bit RSA private key in PEM format.
+      - **PowerShell (Windows)**:
+        ```powershell
+        # Install OpenSSL if not already installed (e.g., via Chocolatey: choco install openssl)
+        openssl genrsa -out private_key.pem 1024
+        ```
+      - **CMD (Windows)**:
+        ```cmd
+        REM Install OpenSSL if needed (e.g., download from openssl.org or use a package manager)
+        openssl genrsa -out private_key.pem 1024
+        ```
+      - **Git Bash (Windows)**:
+        ```bash
+        # OpenSSL is typically included with Git Bash
+        openssl genrsa -out private_key.pem 1024
+        ```
+      - **Linux/macOS Terminal**:
+        ```bash
+        # OpenSSL is usually pre-installed or available via package managers (e.g., apt, brew)
+        openssl genrsa -out private_key.pem 1024
+        ```
+    - **Step 2: Generate the Public Key**:
+      - Extract the public key from the private key using OpenSSL.
+      - **PowerShell (Windows)**:
+        ```powershell
+        openssl rsa -in private_key.pem -pubout -out public_key.pem
+        ```
+      - **CMD (Windows)**:
+        ```cmd
+        openssl rsa -in private_key.pem -pubout -out public_key.pem
+        ```
+      - **Git Bash (Windows)**:
+        ```bash
+        openssl rsa -in private_key.pem -pubout -out public_key.pem
+        ```
+      - **Linux/macOS Terminal**:
+        ```bash
+        openssl rsa -in private_key.pem -pubout -out public_key.pem
+        ```
+    - **Step 3: Verify and Use**:
+      - The `private_key.pem` file contains your private key. Keep it secure and never share it.
+      - The `public_key.pem` file contains the public key. Upload this to the PAYPAY back office under your account settings to enable signature verification.
+      - Example private key (shortened):
+        ```plaintext
+        -----BEGIN PRIVATE KEY-----
+        MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALPlEvZAyTz/d6nE
+        ... // 1024-bit RSA private key
+        -----END PRIVATE KEY-----
+        ```
+      - Example public key (shortened):
+        ```plaintext
+        -----BEGIN PUBLIC KEY-----
+        MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCz5RL2QMk8/3epxLp5ACJnnMgV
+        ... // Corresponding public key
+        -----END PUBLIC KEY-----
+        ```
+    - **Where to Generate**: You can generate keys on any system with OpenSSL installed:
+      - **Windows**: Install OpenSSL via Chocolatey (`choco install openssl`), download from [openssl.org](https://www.openssl.org/), or use Git Bash (which includes OpenSSL).
+      - **Linux**: Install via `sudo apt install openssl` (Ubuntu/Debian) or equivalent.
+      - **macOS**: Install via `brew install openssl` or use the pre-installed version.
+    - **Security Tips**:
+      - Store the private key in a secure location (e.g., a restricted folder or `.env` file).
+      - Back up the key pair in a safe place.
+      - Upload only the public key to PAYPAY; never share the private key.
+  - **How to Use**: Include the private key in your `config` object and upload the public key to the PAYPAY back office.
 
 - **`paypayPublicKey`**:
-  - **Description**: PAYPAY RSA public key for verifying response and notification signatures.
+  - **Description**: PAYPAY’s 1024-bit RSA public key for verifying signatures in API responses and notifications.
   - **How to Get**: Download from the PAYPAY back office after account approval.
-  - **Example**: A PEM-formatted public key (shortened for brevity).
+  - **Example**:
+    ```plaintext
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArL1akdPqJVYIGI4vGNiN
+    ... // PAYPAY’s public key
+    -----END PUBLIC KEY-----
+    ```
 
 - **`apiUrl`**:
   - **Description**: The PAYPAY API gateway endpoint.
-  - **Value**: Confirm the production URL with PAYPAY support. The provided code uses a test URL (``).
+  - **Value**: Confirm with PAYPAY support. The provided code uses a test URL (`https://testgateway.zsaipay.com:18202/gateway/recv.do`).
   - **Note**: No sandbox exists; all transactions involve real funds.
 
 - **`saleProductCode`**:
@@ -75,12 +144,15 @@ The `config` object holds essential settings for the PAYPAY API. Each variable i
     Indicate an invalid or unauthorized `saleProductCode`. Contact PAYPAY support to verify your account’s "adenda" (contract) and obtain the correct code or permissions.
   - **Example**: `"050200030"`
 
-**Best Practice**: Store sensitive data (e.g., `privateKey`, `partnerId`) in environment variables using a `.env` file to avoid hardcoding.
+**Best Practice**: Store sensitive data (e.g., `privateKey`, `partnerId`) in environment variables using a `.env` file to avoid hardcoding. For example:
+```bash
+echo "PRIVATE_KEY=\"$(cat private_key.pem)\"" >> .env
+```
 
 ### Example: Setting Up Configuration
 ```javascript
 const config = {
-  partnerId: "200001860724", // Replace with your merchant ID
+  partnerId: "200001860721", // Replace with your merchant ID
   privateKey: `-----BEGIN PRIVATE KEY-----
 MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALPlEvZAyTz/d6nE
 ... // Your 1024-bit RSA private key
@@ -89,7 +161,7 @@ MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALPlEvZAyTz/d6nE
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArL1akdPqJVYIGI4vGNiN
 ... // PAYPAY’s public key
 -----END PUBLIC KEY-----`,
-  apiUrl: "", // Confirm with PAYPAY support
+  apiUrl: "https://testgateway.zsaipay.com:18202/gateway/recv.do", // Confirm with PAYPAY support
   saleProductCode: "050200030", // Request from PAYPAY support
 };
 ```
